@@ -44,6 +44,7 @@ android {
 dependencies {
     implementation(libs.retrofit.moshi)
     implementation(libs.hilt)
+    implementation(libs.kotlin.date)
     ksp(libs.hilt.compiler)
     implementation(libs.retrofit)
     implementation(libs.androidx.core.ktx)

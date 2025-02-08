@@ -3,6 +3,7 @@ package com.almiga.fetchassignment.di
 import com.almiga.fetchassignment.repository.FetchItemRepository
 import com.almiga.fetchassignment.repository.ItemRepository
 import com.almiga.fetchassignment.services.FetchService
+import com.almiga.fetchassignment.util.SystemTimeProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,13 +16,15 @@ import kotlinx.coroutines.Dispatchers
 object RepositoryModule {
     @Provides
     fun providesItemRepository(
-        fetchService: FetchService
+        fetchService: FetchService,
+        systemTimeProvider: SystemTimeProvider,
     ): ItemRepository {
         val dispatchProvider = Dispatchers
 
         return FetchItemRepository(
             fetchService = fetchService,
             dispatchProvider = dispatchProvider,
+            systemTimeProvider = systemTimeProvider,
         )
     }
 }

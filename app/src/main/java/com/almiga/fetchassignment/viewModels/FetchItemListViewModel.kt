@@ -32,9 +32,15 @@ class FetchItemListViewModel @Inject constructor(
             force = forceRefresh,
         )
 
+        val sortedResults = result
+            .sortedWith(
+                compareBy<FetchItem> { it.listId }.thenBy { it.name }
+            )
+            .groupBy { it.listId.toString() }
+
         _viewState.update {
             it.copy(
-                items = result,
+                groupedItems = sortedResults,
                 isRefreshing = false,
             )
         }
@@ -50,14 +56,14 @@ class FetchItemListViewModel @Inject constructor(
 }
 
 data class ItemListViewState(
-    val items: List<FetchItem>,
+    val groupedItems: Map<String, List<FetchItem>>,
     val isSuccess: Boolean = false,
     val isRefreshing: Boolean = false,
 ) {
 
     companion object {
         val EMPTY = ItemListViewState(
-            items = emptyList()
+            groupedItems = emptyMap()
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.almiga.fetchassignment.ui.composables
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,18 +8,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import com.almiga.fetchassignment.viewModels.ItemListViewState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun FetchItemListView(
     viewState: ItemListViewState,
@@ -32,11 +29,19 @@ fun FetchItemListView(
     ) {
         if (viewState.isSuccess) {
             LazyColumn {
-                items(viewState.items) { item ->
-                    FetchItemView(
-                        modifier = Modifier,
-                        item = item,
-                    )
+                viewState.groupedItems.forEach { (listId, elements) ->
+                    stickyHeader(key = listId) {
+                        Text(
+                            text = listId,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    }
+                    items(elements) { item ->
+                        FetchItemView(
+                            modifier = Modifier,
+                            item = item,
+                        )
+                    }
                 }
             }
 

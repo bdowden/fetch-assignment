@@ -16,17 +16,12 @@ fun FetchItemView(
         modifier = modifier,
     ) {
         Text(
-            text = item.name,
+            text = item.name!!,
             fontStyle = FontStyle.Normal,
         )
 
         Text(
             text = item.id.toString(),
-            fontStyle = FontStyle.Italic,
-        )
-
-        Text(
-            text = item.listId.toString(),
             fontStyle = FontStyle.Italic,
         )
     }
