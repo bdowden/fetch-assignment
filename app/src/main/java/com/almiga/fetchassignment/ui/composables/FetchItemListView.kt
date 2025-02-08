@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.almiga.fetchassignment.viewModels.ItemListViewState
+import com.almiga.fetchassignment.viewModels.RetrieveStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,24 +32,26 @@ fun FetchItemListView(
     refreshData: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (viewState.isRefreshing) {
+    val status = viewState.status
+
+    if (status == RetrieveStatus.LOADING) {
         Loading(modifier)
     } else {
         PullToRefreshBox(
-            isRefreshing = viewState.isRefreshing,
             onRefresh = refreshData,
+            isRefreshing = status == RetrieveStatus.LOADING,
             modifier = modifier.then(
                 Modifier
                     .padding(
                         top = 10.dp,
                     )
                     .fillMaxWidth()
-            )
+            ),
         ) {
-            if (viewState.isSuccess) {
-                Success(viewState)
-            } else {
-                Error(modifier)
+            when (status) {
+                RetrieveStatus.SUCCESS -> Success(viewState)
+                RetrieveStatus.ERROR -> Error(modifier)
+                else -> {}
             }
         }
     }

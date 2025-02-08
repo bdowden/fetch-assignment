@@ -49,10 +49,6 @@ class FetchItemListViewModelTest {
             assertTrue(it.viewState.value.groupedItems.isEmpty())
         }
         advanceUntilIdle()
-
-        // Then
-        //val initialState = viewModel.viewState.first()
-        //assertTrue(initialState.groupedItems.isEmpty())
     }
 
     @Test
@@ -72,8 +68,7 @@ class FetchItemListViewModelTest {
         
         // Then
         val state = viewModel.viewState.first()
-        assertTrue(state.isSuccess)
-        assertFalse(state.isRefreshing)
+        assertEquals(state.status, RetrieveStatus.SUCCESS)
         assertEquals(2, state.groupedItems.size)
         
         // Check group 1
@@ -105,7 +100,7 @@ class FetchItemListViewModelTest {
         
         // Then
         val state = viewModel.viewState.first()
-        assertTrue(state.isSuccess)
+        assertEquals(state.status, RetrieveStatus.SUCCESS)
         val group = state.groupedItems["1"]
         assertEquals(3, group?.size)
         assertEquals(null, group?.get(0)?.name)
@@ -124,8 +119,7 @@ class FetchItemListViewModelTest {
         
         // Then
         val state = viewModel.viewState.first()
-        assertFalse(state.isSuccess)
-        assertFalse(state.isRefreshing)
+        assertEquals(state.status, RetrieveStatus.ERROR)
         assertTrue(state.groupedItems.isEmpty())
     }
 
@@ -147,8 +141,7 @@ class FetchItemListViewModelTest {
         
         // Then
         val state = viewModel.viewState.first()
-        assertTrue(state.isSuccess)
-        assertFalse(state.isRefreshing)
+        assertEquals(state.status, RetrieveStatus.SUCCESS)
         assertEquals("Refreshed", state.groupedItems["1"]?.first()?.name)
     }
 
@@ -170,7 +163,6 @@ class FetchItemListViewModelTest {
         
         // Then - loading should be complete
         val finalState = viewModel.viewState.first()
-        assertFalse(finalState.isRefreshing)
-        assertTrue(finalState.isSuccess)
+        assertEquals(finalState.status, RetrieveStatus.SUCCESS)
     }
 }

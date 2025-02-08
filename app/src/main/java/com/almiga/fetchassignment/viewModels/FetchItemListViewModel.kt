@@ -31,7 +31,7 @@ class FetchItemListViewModel @Inject constructor(
     ) {
         _viewState.update {
             it.copy(
-                isRefreshing = true,
+                status = RetrieveStatus.LOADING,
             )
         }
 
@@ -53,8 +53,7 @@ class FetchItemListViewModel @Inject constructor(
                 _viewState.update {
                     it.copy(
                         groupedItems = sortedResult,
-                        isRefreshing = false,
-                        isSuccess = true,
+                        status = RetrieveStatus.SUCCESS,
                     )
                 }
             },
@@ -64,8 +63,7 @@ class FetchItemListViewModel @Inject constructor(
                 _viewState.update {
                     it.copy(
                         groupedItems = emptyMap(),
-                        isRefreshing = false,
-                        isSuccess = false,
+                        status = RetrieveStatus.ERROR,
                     )
                 }
             }
@@ -89,15 +87,19 @@ class FetchItemListViewModel @Inject constructor(
 
 data class ItemListViewState(
     val groupedItems: Map<String, List<FetchItem>>,
-    val isSuccess: Boolean = false,
-    val isRefreshing: Boolean = false,
+    val status: RetrieveStatus,
 ) {
 
     companion object {
         val EMPTY = ItemListViewState(
             groupedItems = emptyMap(),
-            isSuccess = false,
-            isRefreshing = false,
+            status = RetrieveStatus.LOADING,
         )
     }
+}
+
+enum class RetrieveStatus{
+    LOADING,
+    ERROR,
+    SUCCESS,
 }
