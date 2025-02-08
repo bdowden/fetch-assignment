@@ -6,6 +6,8 @@ import com.almiga.fetchassignment.model.FetchItem
 import com.almiga.fetchassignment.repository.ItemRepository
 import com.almiga.fetchassignment.repository.fold
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -20,14 +22,21 @@ class FetchItemListViewModel @Inject constructor(
     val viewState = _viewState.asStateFlow()
 
     init {
-        refreshItems()
+        refreshItems(true)
     }
 
-    private suspend fun retrieveItems(forceRefresh: Boolean = false) {
+    private suspend fun retrieveItems(
+        skipDelay: Boolean,
+        forceRefresh: Boolean = false,
+    ) {
         _viewState.update {
             it.copy(
                 isRefreshing = true,
             )
+        }
+
+        if (!skipDelay) {
+            delay(2000L) // Fake delay to show loading
         }
         val result = itemRepository.retrieveItems(
             force = forceRefresh,
@@ -50,7 +59,8 @@ class FetchItemListViewModel @Inject constructor(
                 }
             },
             onFailure = { error ->
-                // TODO log the error somewhere
+                // TODO log the error somewhere better than console
+                System.out.println(error)
                 _viewState.update {
                     it.copy(
                         groupedItems = emptyMap(),
@@ -63,11 +73,17 @@ class FetchItemListViewModel @Inject constructor(
     }
 
     fun refreshItems() {
+        refreshItems(false)
+    }
+
+    private fun refreshItems(skipDelay: Boolean) {
         viewModelScope.launch {
             retrieveItems(
+                skipDelay = skipDelay,
                 forceRefresh = true,
             )
         }
+
     }
 }
 
@@ -79,7 +95,9 @@ data class ItemListViewState(
 
     companion object {
         val EMPTY = ItemListViewState(
-            groupedItems = emptyMap()
+            groupedItems = emptyMap(),
+            isSuccess = false,
+            isRefreshing = false,
         )
     }
 }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -93,7 +94,7 @@ class FetchItemRepositoryTest {
         // Given
         val items = listOf(FetchItem(1, 1, "Item 1"))
         coEvery { fetchService.getItems() } returns Response.success(items)
-        every { systemTimeProvider.getCurrentTimeMillis() } returnsMany listOf(1000L, 4000L) // Beyond cache expiration
+        every { systemTimeProvider.getCurrentTimeMillis() } returnsMany listOf(1000L, 21000L) // Beyond cache expiration
 
         // When
         repository.retrieveItems(force = false) // First call to populate cache

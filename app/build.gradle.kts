@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.retrofit.moshi)
+    implementation(libs.retrofit.gson)
     implementation(libs.hilt)
     implementation(libs.kotlin.date)
     ksp(libs.hilt.compiler)

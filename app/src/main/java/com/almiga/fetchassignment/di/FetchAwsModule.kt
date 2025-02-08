@@ -3,11 +3,10 @@ package com.almiga.fetchassignment.di
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -18,7 +17,7 @@ object FetchAwsModule {
     fun providesRetrofit(): Retrofit {
         return Retrofit.Builder()
         .baseUrl("https://fetch-hiring.s3.amazonaws.com")
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
         .client(OkHttpClient())
         .build()
     }

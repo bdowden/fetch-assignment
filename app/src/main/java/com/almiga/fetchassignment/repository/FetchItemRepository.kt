@@ -4,6 +4,7 @@ import com.almiga.fetchassignment.model.FetchItem
 import com.almiga.fetchassignment.services.FetchService
 import com.almiga.fetchassignment.util.SystemTimeProvider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -22,6 +23,7 @@ class FetchItemRepository @Inject constructor(
 
     override suspend fun retrieveItems(force: Boolean): Result<List<FetchItem>> {
         return withContext(dispatchProvider.IO) {
+
             val now = systemTimeProvider.getCurrentTimeMillis()
 
             val didExpire = now - lastFetchTime > CACHE_EXPIRATION
@@ -60,7 +62,7 @@ class FetchItemRepository @Inject constructor(
     }
 
     companion object {
-        private const val CACHE_EXPIRATION = 2000L // millis
+        private const val CACHE_EXPIRATION = 20000L // millis
     }
 }
 
