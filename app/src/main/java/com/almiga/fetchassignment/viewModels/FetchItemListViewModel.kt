@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.almiga.fetchassignment.model.FetchItem
 import com.almiga.fetchassignment.repository.ItemRepository
+import com.almiga.fetchassignment.repository.fold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,18 +33,33 @@ class FetchItemListViewModel @Inject constructor(
             force = forceRefresh,
         )
 
-        val sortedResults = result
-            .sortedWith(
-                compareBy<FetchItem> { it.listId }.thenBy { it.name }
-            )
-            .groupBy { it.listId.toString() }
+        result.fold(
+            onSuccess = { items ->
+                val sortedResult = items
+                    .sortedWith(
+                        compareBy<FetchItem> { it.listId }.thenBy { it.name }
+                    )
+                    .groupBy { it.listId.toString() }
 
-        _viewState.update {
-            it.copy(
-                groupedItems = sortedResults,
-                isRefreshing = false,
-            )
-        }
+                _viewState.update {
+                    it.copy(
+                        groupedItems = sortedResult,
+                        isRefreshing = false,
+                        isSuccess = true,
+                    )
+                }
+            },
+            onFailure = { error ->
+                // TODO log the error somewhere
+                _viewState.update {
+                    it.copy(
+                        groupedItems = emptyMap(),
+                        isRefreshing = false,
+                        isSuccess = false,
+                    )
+                }
+            }
+        )
     }
 
     fun refreshItems() {

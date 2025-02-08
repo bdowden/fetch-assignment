@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 interface ItemRepository {
-    suspend fun retrieveItems(force: Boolean = false): List<FetchItem>
+    suspend fun retrieveItems(force: Boolean = false): Result<List<FetchItem>>
 }
 
 class FetchItemRepository @Inject constructor(
@@ -20,22 +20,30 @@ class FetchItemRepository @Inject constructor(
     private var lastResult: List<FetchItem> = emptyList()
     private var lastFetchTime: Long = 0
 
-    override suspend fun retrieveItems(force: Boolean): List<FetchItem> {
+    override suspend fun retrieveItems(force: Boolean): Result<List<FetchItem>> {
         return withContext(dispatchProvider.IO) {
             val now = systemTimeProvider.getCurrentTimeMillis()
 
             val didExpire = now - lastFetchTime > CACHE_EXPIRATION
-            if (force || didExpire) {
-                fetchFromApi()
-            } else {
-                fetchFromCache()
+
+            try {
+                val result = if (force || didExpire) {
+                    fetchFromApi()
+                } else {
+                    fetchFromCache()
+                }
+
+                Result.Success(
+                    result.filter { it.isValid }
+                )
+
+            } catch (ex: Exception) {
+                Result.Failure(ex)
             }
-        }.filterNot { it.name.isNullOrBlank() }
+        }
     }
 
-    private fun fetchFromCache(): List<FetchItem> {
-        return lastResult ?: emptyList()
-    }
+    private fun fetchFromCache(): List<FetchItem> = lastResult
 
     private suspend fun fetchFromApi(): List<FetchItem> {
         val result = fetchService.getItems()
@@ -46,8 +54,8 @@ class FetchItemRepository @Inject constructor(
                 lastFetchTime = systemTimeProvider.getCurrentTimeMillis()
             }
         } else {
-            // TODO Log the error
-            emptyList()
+            val errorMessage = result.errorBody()?.toString() ?: ""
+            throw FetchItemResultException(errorMessage)
         }
     }
 
@@ -55,3 +63,44 @@ class FetchItemRepository @Inject constructor(
         private const val CACHE_EXPIRATION = 2000L // millis
     }
 }
+
+class FetchItemResultException(message: String) : Exception(message) {}
+
+
+// mockk was not working with `kotlin.Result` so I'm writing my own that will hopefully work better
+sealed class Result<T> {
+    data class Success<T>(val value: T) : Result<T>()
+    data class Failure<T>(val error: Throwable) : Result<T>()
+
+    val isSuccess: Boolean
+        get() = this is Success<T>
+
+    val isFailure: Boolean
+        get() = !isSuccess
+
+    fun getOrNull(): T? {
+        return (this as? Success<T>)?.let {
+            value
+        }
+    }
+
+    fun exceptionOrNull(): Throwable? {
+        return (this as? Failure<T>)?.let {
+            error
+        }
+    }
+
+    companion object {
+        fun<T> success(value: T): Success<T> = Success(value)
+        fun<T> failure(error: Throwable): Failure<T> = Failure(error)
+    }
+}
+
+inline fun <R, T> Result<T>.fold(
+    onSuccess: (value: T) -> R,
+    onFailure: (exception: Throwable) -> R
+): R = when (this) {
+    is Result.Success -> onSuccess(value)
+    is Result.Failure -> onFailure(error)
+}
+
